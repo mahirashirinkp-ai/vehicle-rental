@@ -1,0 +1,15 @@
+com\vrms\repository\CustomerRepository.class
+com\vrms\VehicleRentalApplication.class
+com\vrms\service\CustomerService.class
+com\vrms\service\VehicleService.class
+com\vrms\config\DataInitializer.class
+com\vrms\model\Vehicle.class
+com\vrms\model\Rental.class
+com\vrms\config\SecurityConfig.class
+com\vrms\model\Customer.class
+com\vrms\repository\VehicleRepository.class
+com\vrms\controller\HomeController.class
+com\vrms\service\RentalService.class
+com\vrms\service\CustomUserDetailsService.class
+com\vrms\controller\RentalController.class
+com\vrms\repository\RentalRepository.class

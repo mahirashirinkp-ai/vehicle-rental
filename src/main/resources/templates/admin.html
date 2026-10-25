@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - VRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .stat-card { border-radius: 12px; border: none; }
+        .stat-icon { font-size: 2.5rem; opacity: 0.8; }
+        body { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/"><i class="bi bi-shield-check me-2"></i>VRMS Admin</a>
+        <form th:action="@{/logout}" method="post" class="d-inline">
+            <button class="btn btn-outline-danger" type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container-fluid py-4 px-4">
+    <div th:if="${success}" class="alert alert-success alert-dismissible">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card stat-card bg-primary text-white p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold" th:text="${rentals.size()}">0</div>
+                        <div>Total Bookings</div>
+                    </div>
+                    <i class="bi bi-calendar-check stat-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card bg-success text-white p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold" th:text="${vehicles.size()}">0</div>
+                        <div>Fleet Size</div>
+                    </div>
+                    <i class="bi bi-car-front stat-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card bg-warning text-dark p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold" th:text="${customers.size()}">0</div>
+                        <div>Customers</div>
+                    </div>
+                    <i class="bi bi-people stat-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card bg-info text-white p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold"
+                             th:text="${#lists.size(rentals.?[status == 'PENDING'])}">0</div>
+                        <div>Pending</div>
+                    </div>
+                    <i class="bi bi-hourglass-split stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between">
+            <span><i class="bi bi-list-check me-2 text-primary"></i>All Bookings</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th><th>Customer</th><th>Vehicle</th>
+                            <th>Dates</th><th>Total</th><th>Status</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rentals}">
+                            <td th:text="${r.id}"></td>
+                            <td>
+                                <strong th:text="${r.customer.fullName}"></strong>
+                                <small class="text-muted d-block" th:text="${r.customer.phone}"></small>
+                            </td>
+                            <td th:text="${r.vehicle.name}"></td>
+                            <td>
+                                <small th:text="${r.startDate}"></small><br>
+                                <small th:text="${r.endDate}"></small>
+                            </td>
+                            <td class="fw-bold text-primary">₹<span th:text="${r.totalCost}"></span></td>
+                            <td>
+                                <span th:text="${r.status}"
+                                      th:classappend="${r.status == 'APPROVED'} ? 'bg-success' :
+                                                     (${r.status == 'PENDING'} ? 'bg-warning text-dark' :
+                                                     (${r.status == 'REJECTED'} ? 'bg-danger' : 'bg-secondary'))"
+                                      class="badge rounded-pill"></span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                        data-bs-toggle="collapse"
+                                        th:data-bs-target="'#action-' + ${r.id}">
+                                    Manage
+                                </button>
+                                <div class="collapse mt-2" th:id="'action-' + ${r.id}">
+                                    <form th:action="@{/admin/rental/{id}/status(id=${r.id})}" method="post">
+                                        <select name="status" class="form-select form-select-sm mb-1">
+                                            <option value="PENDING">PENDING</option>
+                                            <option value="APPROVED">APPROVED</option>
+                                            <option value="REJECTED">REJECTED</option>
+                                            <option value="COMPLETED">COMPLETED</option>
+                                        </select>
+                                        <input type="text" name="note" class="form-control form-control-sm mb-1"
+                                               placeholder="Note to customer (optional)">
+                                        <button class="btn btn-primary btn-sm w-100" type="submit">Update</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rentals)}">
+                            <td colspan="7" class="text-center text-muted py-4">No bookings yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicles Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-car-front me-2 text-success"></i>Fleet Management</span>
+            <a href="/admin/vehicle/add" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Add Vehicle
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th><th>Name</th><th>Type</th><th>Brand</th>
+                            <th>Price/Day</th><th>Available</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="v : ${vehicles}">
+                            <td th:text="${v.id}"></td>
+                            <td class="fw-semibold" th:text="${v.name}"></td>
+                            <td th:text="${v.type}"></td>
+                            <td th:text="${v.brand}"></td>
+                            <td>₹<span th:text="${v.pricePerDay}"></span></td>
+                            <td>
+                                <span th:text="${v.available ? 'Yes' : 'No'}"
+                                      th:class="${v.available ? 'badge bg-success' : 'badge bg-danger'}"></span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/vehicle/edit/{id}(id=${v.id})}"
+                                   class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                <form th:action="@{/admin/vehicle/delete/{id}(id=${v.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete this vehicle?')">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
